@@ -1,0 +1,301 @@
+/* ===== 기본 ===== */
+:root {
+  --white: #ffffff;
+  --line: rgba(255, 255, 255, 0.28);
+  --accent: #c8102e; /* 붉은 강조색 */
+  --title-font: "DIN Condensed", "Bebas Neue", "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif-condensed, sans-serif;
+  --body-font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  color: var(--white);
+  background: #1c2229;
+  font-family: var(--body-font);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ===== 배경 사진 + 어두운 막 ===== */
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(rgba(10, 14, 20, 0.45), rgba(10, 14, 20, 0.55)),
+    url("images/background.jpg") center / cover no-repeat;
+}
+
+/* ===== 맨 위 줄 ===== */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 96px;
+  padding: 0 70px;
+}
+
+.topbar-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-family: var(--title-font);
+  font-size: 18px;
+  letter-spacing: 0.16em;
+}
+
+/* CONTACT 왼쪽의 짧은 가로선 */
+.contact-button::before {
+  content: "";
+  position: absolute;
+  left: -70px;
+  top: 50%;
+  width: 46px;
+  height: 1px;
+  background: var(--white);
+}
+
+/* MENU 오른쪽의 가로줄 세 개 */
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 46px;
+  margin-right: -70px;
+}
+
+.menu-icon span {
+  display: block;
+  height: 1px;
+  background: var(--white);
+}
+
+.topbar-button:hover,
+.topbar-button:focus-visible {
+  color: #ffd9de;
+}
+
+/* ===== 첫 화면 ===== */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: 100vh;
+  height: 100svh;
+}
+
+.hero-column {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 18vh;
+}
+
+/* 칸 사이 세로선 */
+.hero-column + .hero-column {
+  border-left: 1px solid var(--line);
+}
+
+/* 글자 높이에 맞춘 화면 양 끝 짧은 가로선 */
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: calc(18vh + 0.6em);
+  width: 46px;
+  height: 1px;
+  background: var(--white);
+  font-size: clamp(36px, 4vw, 80px);
+}
+
+.hero::before {
+  left: 0;
+}
+
+.hero::after {
+  right: 0;
+}
+
+.hero-link {
+  font-family: var(--title-font);
+  font-weight: 300;
+  font-stretch: condensed;
+  font-size: clamp(36px, 4vw, 80px);
+  line-height: 1;
+  letter-spacing: 0.28em;
+  margin-right: -0.28em; /* 마지막 글자 뒤 띄움을 지워 가운데 맞춤 */
+  transition: color 0.2s, opacity 0.2s;
+}
+
+.hero-link:hover,
+.hero-link:focus-visible {
+  color: #ffd9de;
+}
+
+/* 아래쪽 가운데 세로선 (아래로 내려 보라는 표시) */
+.scroll-line {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  height: 48px;
+  background: var(--white);
+}
+
+/* ===== 메뉴 (MENU를 누르면 열림) ===== */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 36px;
+  background: rgba(10, 14, 20, 0.94);
+}
+
+.menu[hidden] {
+  display: none;
+}
+
+.menu-close {
+  position: absolute;
+  top: 36px;
+  right: 70px;
+  font-family: var(--title-font);
+  font-size: 18px;
+  letter-spacing: 0.16em;
+}
+
+.menu-link {
+  font-family: var(--title-font);
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 72px);
+  letter-spacing: 0.3em;
+  margin-right: -0.3em;
+}
+
+.menu-link:hover,
+.menu-link:focus-visible,
+.menu-close:hover,
+.menu-close:focus-visible {
+  color: #ffd9de;
+}
+
+/* ===== 아래 칸들 (다음 단계에서 채움) ===== */
+.section {
+  min-height: 60vh;
+  padding: 120px 70px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 0;
+}
+
+.section-title {
+  margin: 0 0 24px;
+  font-family: var(--title-font);
+  font-weight: 300;
+  font-size: clamp(32px, 4vw, 56px);
+  letter-spacing: 0.3em;
+}
+
+.section-title::after {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 2px;
+  margin-top: 16px;
+  background: var(--accent);
+}
+
+.placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ===== 휴대폰 ===== */
+@media (max-width: 700px) {
+  .topbar {
+    height: 72px;
+    padding: 0 24px;
+  }
+
+  .contact-button::before {
+    display: none;
+  }
+
+  .menu-icon {
+    width: 28px;
+    margin-right: 0;
+  }
+
+  .topbar-button {
+    gap: 12px;
+    font-size: 16px;
+  }
+
+  /* 세 메뉴를 위아래로 쌓는다 */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 72px;
+  }
+
+  .hero::before {
+    content: none;
+  }
+
+  .hero::after {
+    content: none;
+  }
+
+  .hero-column {
+    align-items: center;
+    padding: 28px 0;
+  }
+
+  .hero-column + .hero-column {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .hero-link {
+    font-size: 40px;
+  }
+
+  .menu-close {
+    top: 24px;
+    right: 24px;
+  }
+
+  .section {
+    padding: 96px 24px;
+  }
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>김지영 포트폴리오</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 화면 전체에 깔리는 배경 사진 + 어두운 막 -->
+  <div class="background" aria-hidden="true"></div>
+
+  <!-- 맨 위 줄: CONTACT · MENU -->
+  <header class="topbar">
+    <button type="button" class="topbar-button contact-button" data-target="about">CONTACT</button>
+    <button type="button" class="topbar-button menu-button" aria-expanded="false" aria-controls="menu">
+      MENU
+      <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+  </header>
+
+  <!-- 첫 화면: MOTION · ABOUT · STILLS -->
+  <section class="hero" id="top">
+    <div class="hero-column">
+      <button type="button" class="hero-link" data-target="portfolio" data-filter="영상">MOTION</button>
+    </div>
+    <div class="hero-column">
+      <button type="button" class="hero-link" data-target="about">ABOUT</button>
+    </div>
+    <div class="hero-column">
+      <button type="button" class="hero-link" data-target="portfolio" data-filter="사진">STILLS</button>
+    </div>
+    <span class="scroll-line" aria-hidden="true"></span>
+  </section>
+
+  <!-- MENU를 누르면 열리는 메뉴 -->
+  <nav class="menu" id="menu" aria-label="메뉴" hidden>
+    <button type="button" class="menu-close">CLOSE</button>
+    <button type="button" class="menu-link" data-target="about">ABOUT ME</button>
+    <button type="button" class="menu-link" data-target="portfolio">PORTFOLIO</button>
+    <button type="button" class="menu-link" data-target="guestbook">GUESTBOOK</button>
+  </nav>
+
+  <!-- 아래 칸들은 다음 단계에서 채운다 -->
+  <main>
+    <section class="section" id="about">
+      <h2 class="section-title">ABOUT ME</h2>
+      <p class="placeholder">다음 단계에서 프로필이 들어갑니다.</p>
+    </section>
+
+    <section class="section" id="portfolio">
+      <h2 class="section-title">PORTFOLIO</h2>
+      <p class="placeholder">지금 보는 분류: <strong id="current-filter">전체</strong></p>
+    </section>
+
+    <section class="section" id="guestbook">
+      <h2 class="section-title">GUESTBOOK</h2>
+      <p class="placeholder">다음 단계에서 방명록이 들어갑니다.</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
