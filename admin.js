@@ -4,9 +4,17 @@ const SUPABASE_KEY = "sb_publishable_ZqafFtsKN_65vi1st9fk4A_IYm5vcX8";
 const BUCKET = "resume";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (보관함 설정과 같다)
 const SESSION_KEY = "resume_admin_session";
+const MAX_IMAGE_SIDE = 2400; // 올리는 사진의 긴 변 최대 크기(px)
 
 // 화면에서 버튼을 숨기는 것은 편의일 뿐이다.
 // 실제로 관리자만 고칠 수 있게 막는 것은 Supabase 규칙(resume.sql)이다.
+
+
+// 다른 사이트가 이 관리자 페이지를 몰래 안에 끼워 보여 주면(클릭 속이기) 화면을 비운다
+if (window.top !== window.self) {
+  document.documentElement.replaceChildren();
+  throw new Error("관리자 페이지는 다른 사이트 안에서 열 수 없어요.");
+}
 
 
 // ===== 로그인 정보 보관 =====
@@ -124,8 +132,48 @@ async function change(path, method, body, prefer) {
   return rows;
 }
 
+// 사진을 새로 그려서 저장한다.
+// 그러면 촬영 위치(GPS)·카메라 정보 같은 사진 속 정보가 빠지고, 너무 큰 사진은 줄어든다.
+// PDF와 GIF는 그대로 둔다.
+async function cleanImage(file) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+    return file;
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await new Promise(function (resolve, reject) {
+      const img = new Image();
+      img.onload = function () {
+        resolve(img);
+      };
+      img.onerror = function () {
+        reject(new Error("사진을 열지 못했어요: " + file.name));
+      };
+      img.src = url;
+    });
+    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(image.naturalWidth * scale);
+    canvas.height = Math.round(image.naturalHeight * scale);
+    canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const type = file.type === "image/png" ? "image/png" : "image/jpeg";
+    const blob = await new Promise(function (resolve) {
+      canvas.toBlob(resolve, type, 0.9);
+    });
+    if (!blob) {
+      throw new Error("사진을 바꾸지 못했어요: " + file.name);
+    }
+    const name = file.name.replace(/\.[^.]+$/, "") + (type === "image/png" ? ".png" : ".jpg");
+    return new File([blob], name, { type: type });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 // 파일을 보관함에 올리고 공개 주소를 돌려준다
-async function uploadFile(file, folder) {
+async function uploadFile(original, folder) {
+  const file = await cleanImage(original);
   if (file.size > MAX_FILE_SIZE) {
     throw new Error("파일이 10MB보다 커요: " + file.name);
   }

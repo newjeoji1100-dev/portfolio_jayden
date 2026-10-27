@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 추가 방어벽: 이 페이지는 내 파일과 Supabase에만 연결한다 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https://mleyapzurbkmgkoczdin.supabase.co; connect-src https://mleyapzurbkmgkoczdin.supabase.co; base-uri 'none'; form-action 'none'">
   <title>김민재 포트폴리오</title>
   <meta name="description" content="제주의 빛과 바람을 기록하는 영상 · 사진 작가 김민재의 포트폴리오">
   <!-- 카카오톡·문자 등 링크 미리보기 -->

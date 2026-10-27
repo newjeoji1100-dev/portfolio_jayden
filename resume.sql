@@ -18,6 +18,7 @@
 --   - 방문자는 방명록에 별명·한마디만, 좋아요에 카드 번호·브라우저 번호만 넣을 수 있다.
 --     (작성 시각을 미래로 꾸며 목록 맨 위에 계속 고정하는 일을 막는다)
 --   - 예시 데이터를 지금 화면(영상·사진 작가 김지영)에 맞췄다. 전부 가짜다.
+--   - 9번: 방명록·좋아요를 프로그램으로 도배하지 못하게 속도를 제한한다.
 --
 -- 이름 규칙: 이 사이트의 표·보관함·함수·규칙 이름은 모두 resume_ 로 시작한다.
 --           (같은 Supabase를 쓰는 다른 사이트와 섞이지 않게)
@@ -291,3 +292,60 @@ where not exists (select 1 from public.resume_projects);
 insert into public.resume_admins (user_id)
 select id from auth.users where email = 'jeju.jayden@gmail.com'
 on conflict (user_id) do nothing;
+
+
+-- ---------------------------------------------------------------------
+-- 9. 도배 막기 (방명록 · 좋아요 속도 제한)
+--    누군가 프로그램으로 글이나 좋아요를 마구 넣지 못하게, 사이트 전체에서
+--    정해진 시간 동안 들어올 수 있는 개수를 제한한다. 넘으면 저장되지 않는다.
+-- ---------------------------------------------------------------------
+create index if not exists resume_guestbook_created_at_idx on public.resume_guestbook (created_at);
+create index if not exists resume_likes_created_at_idx     on public.resume_likes (created_at);
+
+create or replace function public.resume_guestbook_rate_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if (select count(*) from public.resume_guestbook where created_at > now() - interval '1 minute') >= 5 then
+    raise exception '방명록이 잠깐 너무 많이 올라왔어요. 1분 뒤 다시 남겨 주세요.';
+  end if;
+  if (select count(*) from public.resume_guestbook where created_at > now() - interval '1 day') >= 100 then
+    raise exception '오늘 방명록이 너무 많이 올라왔어요. 내일 다시 남겨 주세요.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists resume_guestbook_rate_limit on public.resume_guestbook;
+create trigger resume_guestbook_rate_limit
+  before insert on public.resume_guestbook
+  for each row execute function public.resume_guestbook_rate_limit();
+
+create or replace function public.resume_likes_rate_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if (select count(*) from public.resume_likes where created_at > now() - interval '1 minute') >= 30 then
+    raise exception '좋아요가 잠깐 너무 많이 눌렸어요. 1분 뒤 다시 눌러 주세요.';
+  end if;
+  if (select count(*) from public.resume_likes where created_at > now() - interval '1 day') >= 1000 then
+    raise exception '오늘 좋아요가 너무 많이 눌렸어요. 내일 다시 눌러 주세요.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists resume_likes_rate_limit on public.resume_likes;
+create trigger resume_likes_rate_limit
+  before insert on public.resume_likes
+  for each row execute function public.resume_likes_rate_limit();
+
+-- 이 함수들은 표에 글이 들어올 때만 쓰인다. 사이트에서 직접 부르지 못하게 한다.
+revoke execute on function public.resume_guestbook_rate_limit() from public, anon, authenticated;
+revoke execute on function public.resume_likes_rate_limit()     from public, anon, authenticated;
