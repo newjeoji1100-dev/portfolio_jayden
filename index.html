@@ -12,7 +12,7 @@
 
   <!-- 맨 위 줄: CONTACT · MENU -->
   <header class="topbar">
-    <button type="button" class="topbar-button contact-button" data-target="about">CONTACT</button>
+    <button type="button" class="topbar-button contact-button" data-target="contact">CONTACT</button>
     <button type="button" class="topbar-button menu-button" aria-expanded="false" aria-controls="menu">
       MENU
       <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -43,15 +43,49 @@
 
   <!-- 아래 칸들은 다음 단계에서 채운다 -->
   <main>
-    <section class="section" id="about">
-      <h2 class="section-title">ABOUT ME</h2>
-      <p class="placeholder">다음 단계에서 프로필이 들어갑니다.</p>
-    </section>
+    <div class="content">
+      <!-- 왼쪽: ABOUT ME -->
+      <section class="section about" id="about">
+        <h2 class="section-title">ABOUT ME</h2>
 
-    <section class="section" id="portfolio">
-      <h2 class="section-title">PORTFOLIO</h2>
-      <p class="placeholder">지금 보는 분류: <strong id="current-filter">전체</strong></p>
-    </section>
+        <div class="profile-photo">
+          <!-- 프로필 사진이 없을 때 보이는 기본 모양 -->
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="46" r="22" />
+            <path d="M18 112c4-26 22-40 42-40s38 14 42 40z" />
+          </svg>
+        </div>
+
+        <p class="profile-name">김지영</p>
+        <p class="profile-role">영상 · 사진 작가</p>
+        <p class="profile-badge">경력 5년</p>
+
+        <dl class="profile-info" id="contact">
+          <div class="profile-row">
+            <dt>NAME</dt>
+            <dd>김지영</dd>
+          </div>
+          <div class="profile-row">
+            <dt>EMAIL</dt>
+            <dd><a href="mailto:jiyoung@example.com">jiyoung@example.com</a></dd>
+          </div>
+          <div class="profile-row">
+            <dt>PHONE</dt>
+            <dd><a href="tel:010-0000-0000">010-0000-0000</a></dd>
+          </div>
+          <div class="profile-row">
+            <dt>LOCATION</dt>
+            <dd>제주</dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- 오른쪽: PORTFOLIO -->
+      <section class="section" id="portfolio">
+        <h2 class="section-title">PORTFOLIO</h2>
+        <p class="placeholder">지금 보는 분류: <strong id="current-filter">전체</strong></p>
+      </section>
+    </div>
 
     <section class="section" id="guestbook">
       <h2 class="section-title">GUESTBOOK</h2>

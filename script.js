@@ -67,3 +67,13 @@ document.addEventListener("keydown", function (event) {
     closeMenu();
   }
 });
+
+// 첫 화면을 조금이라도 내려가면 맨 위 줄에 어두운 바탕을 깐다
+const topbar = document.querySelector(".topbar");
+
+function updateTopbar() {
+  topbar.classList.toggle("scrolled", window.scrollY > 40);
+}
+
+window.addEventListener("scroll", updateTopbar);
+updateTopbar();

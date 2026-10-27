@@ -59,6 +59,14 @@ button {
   align-items: center;
   height: 96px;
   padding: 0 70px;
+  transition: background 0.3s, height 0.3s;
+}
+
+/* 아래로 내려가면 맨 위 줄에 어두운 바탕을 깔아 내용과 겹치지 않게 한다 */
+.topbar.scrolled {
+  height: 72px;
+  background: rgba(10, 14, 20, 0.9);
+  border-bottom: 1px solid var(--line);
 }
 
 .topbar-button {
@@ -222,8 +230,9 @@ button {
   margin: 0 0 24px;
   font-family: var(--title-font);
   font-weight: 300;
-  font-size: clamp(32px, 4vw, 56px);
-  letter-spacing: 0.3em;
+  font-size: clamp(28px, 2.6vw, 44px);
+  letter-spacing: 0.2em;
+  white-space: nowrap;
 }
 
 .section-title::after {
@@ -237,6 +246,106 @@ button {
 
 .placeholder {
   color: rgba(255, 255, 255, 0.75);
+}
+
+/* ===== ABOUT ME (왼쪽) + PORTFOLIO (오른쪽) ===== */
+.content {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) 2fr;
+  border-top: 1px solid var(--line);
+}
+
+.content .section {
+  border-top: 0;
+}
+
+.about {
+  border-right: 1px solid var(--line);
+  background: rgba(10, 14, 20, 0.45);
+}
+
+.profile-photo {
+  width: 160px;
+  height: 160px;
+  margin: 40px 0 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-photo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: rgba(255, 255, 255, 0.35);
+}
+
+.profile-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.profile-role {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.profile-badge {
+  display: inline-block;
+  margin: 20px 0 0;
+  padding: 6px 14px;
+  border: 1px solid var(--accent);
+  color: #ffd9de;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+}
+
+.profile-info {
+  margin: 40px 0 0;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 96px; /* CONTACT를 누르면 맨 위 줄에 가리지 않게 */
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-row dt {
+  font-family: var(--title-font);
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.profile-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-row a {
+  color: var(--white);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.profile-row a:hover,
+.profile-row a:focus-visible {
+  color: #ffd9de;
+  border-bottom-color: var(--accent);
 }
 
 /* ===== 휴대폰 ===== */
@@ -297,5 +406,19 @@ button {
 
   .section {
     padding: 96px 24px;
+  }
+
+  /* ABOUT ME와 PORTFOLIO를 위아래로 쌓는다 */
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .about {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .profile-info {
+    scroll-margin-top: 84px;
   }
 }
