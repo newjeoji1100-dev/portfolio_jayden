@@ -57,7 +57,7 @@ create table if not exists public.projects (
   description   text not null default '',
   tags          text[] not null default '{}',
   thumbnail_url text,
-  file_url      text,
+  file_url      text,  -- 사진 카드: 보관함 파일 주소 / 영상 카드: 유튜브·비메오 주소
   sort_order    int not null default 0,
   created_at    timestamptz not null default now()
 );
