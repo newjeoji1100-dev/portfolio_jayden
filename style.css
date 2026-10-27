@@ -244,10 +244,6 @@ button {
   background: var(--accent);
 }
 
-.placeholder {
-  color: rgba(255, 255, 255, 0.75);
-}
-
 /* ===== ABOUT ME (왼쪽) + PORTFOLIO (오른쪽) ===== */
 .content {
   display: grid;
@@ -618,6 +614,126 @@ a.card-main:focus-visible {
   font-size: 18px;
   font-style: italic;
   color: rgba(255, 255, 255, 0.85);
+}
+
+/* ===== 방명록 ===== */
+.guestbook {
+  background: rgba(10, 14, 20, 0.45);
+}
+
+.guestbook-form {
+  max-width: 760px;
+  margin-top: 40px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.counter {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: rgba(10, 14, 20, 0.5);
+  color: var(--white);
+  font: inherit;
+  font-size: 16px; /* 휴대폰에서 글을 쓸 때 화면이 확대되지 않게 */
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--white);
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.guestbook-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.guestbook-status {
+  margin: 0;
+  font-size: 14px;
+  color: #ffd9de;
+}
+
+.guestbook-submit {
+  flex-shrink: 0;
+  padding: 12px 32px;
+  border: 1px solid var(--white);
+  font-family: var(--title-font);
+  letter-spacing: 0.2em;
+}
+
+.guestbook-submit:hover,
+.guestbook-submit:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.guestbook-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.guestbook .empty {
+  margin-top: 48px;
+}
+
+.guestbook-list {
+  max-width: 760px;
+  margin: 48px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.guestbook-item {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.guestbook-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+}
+
+.guestbook-head time {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.guestbook-message {
+  margin: 8px 0 0;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 /* ===== 휴대폰 ===== */

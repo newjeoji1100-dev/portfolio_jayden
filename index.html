@@ -121,9 +121,27 @@
       </section>
     </div>
 
-    <section class="section" id="guestbook">
+    <!-- 방명록 (Supabase resume_guestbook 표) -->
+    <section class="section guestbook" id="guestbook">
       <h2 class="section-title">GUESTBOOK</h2>
-      <p class="placeholder">다음 단계에서 방명록이 들어갑니다.</p>
+
+      <div class="guestbook-form">
+        <div class="field">
+          <label for="guest-nickname">별명</label>
+          <input id="guest-nickname" type="text" maxlength="20" autocomplete="nickname" placeholder="1~20자">
+        </div>
+        <div class="field">
+          <label for="guest-message">한마디 <span class="counter" id="guest-counter">0 / 200</span></label>
+          <textarea id="guest-message" maxlength="200" rows="3" placeholder="1~200자"></textarea>
+        </div>
+        <div class="guestbook-actions">
+          <p class="guestbook-status" id="guest-status" role="status"></p>
+          <button type="button" class="guestbook-submit" id="guest-submit">남기기</button>
+        </div>
+      </div>
+
+      <p class="empty" id="guest-empty" hidden>아직 남긴 글이 없어요. 첫 글을 남겨 주세요.</p>
+      <ul class="guestbook-list" id="guest-list"></ul>
     </section>
   </main>
 

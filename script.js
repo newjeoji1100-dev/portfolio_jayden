@@ -18,10 +18,9 @@ async function api(path, options) {
     error.status = response.status;
     throw error;
   }
-  if (response.status === 204 || response.status === 201) {
-    return null;
-  }
-  return response.json();
+  // 돌려준 내용이 없으면(좋아요 저장 등) null
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 // http(s) 주소만 쓴다 (이상한 주소가 들어와도 실행되지 않게)
@@ -368,8 +367,95 @@ async function loadProjects() {
 }
 
 
+// ===== 방명록 (resume_guestbook 표) =====
+
+const guestNickname = document.getElementById("guest-nickname");
+const guestMessage = document.getElementById("guest-message");
+const guestCounter = document.getElementById("guest-counter");
+const guestSubmit = document.getElementById("guest-submit");
+const guestStatus = document.getElementById("guest-status");
+const guestList = document.getElementById("guest-list");
+const guestEmpty = document.getElementById("guest-empty");
+
+// 2026.10.27 14:05 모양으로 날짜를 쓴다
+function formatDate(value) {
+  const date = new Date(value);
+  const pad = function (number) {
+    return String(number).padStart(2, "0");
+  };
+  return date.getFullYear() + "." + pad(date.getMonth() + 1) + "." + pad(date.getDate()) +
+    " " + pad(date.getHours()) + ":" + pad(date.getMinutes());
+}
+
+function makeGuestItem(entry) {
+  const item = document.createElement("li");
+  item.className = "guestbook-item";
+
+  const head = document.createElement("p");
+  head.className = "guestbook-head";
+  const name = document.createElement("strong");
+  name.textContent = entry.nickname;
+  const time = document.createElement("time");
+  time.dateTime = entry.created_at;
+  time.textContent = formatDate(entry.created_at);
+  head.append(name, time);
+
+  const message = document.createElement("p");
+  message.className = "guestbook-message";
+  message.textContent = entry.message;
+
+  item.append(head, message);
+  return item;
+}
+
+function updateGuestEmpty() {
+  guestEmpty.hidden = guestList.children.length > 0;
+}
+
+// 최신 글 100개를 불러온다
+async function loadGuestbook() {
+  const rows = await api("resume_guestbook?select=*&order=created_at.desc,id.desc&limit=100");
+  guestList.replaceChildren.apply(guestList, rows.map(makeGuestItem));
+  updateGuestEmpty();
+}
+
+guestMessage.addEventListener("input", function () {
+  guestCounter.textContent = guestMessage.value.length + " / 200";
+});
+
+async function submitGuestbook() {
+  const nickname = guestNickname.value.trim();
+  const message = guestMessage.value.trim();
+  if (!nickname || !message) {
+    guestStatus.textContent = "별명과 한마디를 모두 적어 주세요.";
+    return;
+  }
+
+  guestSubmit.disabled = true;
+  guestStatus.textContent = "남기는 중…";
+  try {
+    const rows = await api("resume_guestbook?select=*", {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: { nickname: nickname, message: message },
+    });
+    guestList.prepend(makeGuestItem(rows[0]));
+    updateGuestEmpty();
+    guestMessage.value = "";
+    guestCounter.textContent = "0 / 200";
+    guestStatus.textContent = "남겼어요. 고마워요!";
+  } catch (error) {
+    console.error(error);
+    guestStatus.textContent = "남기지 못했어요. 잠시 뒤 다시 눌러 주세요.";
+  }
+  guestSubmit.disabled = false;
+}
+
+guestSubmit.addEventListener("click", submitGuestbook);
+
+
 // ===== 처음 열 때 불러오기 =====
-Promise.all([loadProfile(), loadProjects()]).catch(function (error) {
+Promise.all([loadProfile(), loadProjects(), loadGuestbook()]).catch(function (error) {
   console.error(error);
   document.getElementById("load-error").hidden = false;
 });
