@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>관리자 · 포트폴리오</title>
+  <style>
+    :root {
+      --bg: #12171d;
+      --panel: #1b222a;
+      --line: rgba(255, 255, 255, 0.16);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.6);
+      --accent: #c8102e;
+      --ok: #7fd1a0;
+      --title-font: "DIN Condensed", "Bebas Neue", "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif-condensed, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    /* hidden 이 붙은 것은 언제나 숨긴다 */
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.5;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    /* 맨 위 줄 */
+    .admin-top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(18, 23, 29, 0.95);
+    }
+
+    .admin-title {
+      margin: 0;
+      font-family: var(--title-font);
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: 0.2em;
+    }
+
+    .admin-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-left: auto;
+      font-size: 14px;
+    }
+
+    .admin-nav a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .admin-nav a:hover,
+    .admin-nav a:focus-visible {
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    .panel {
+      margin-bottom: 32px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      scroll-margin-top: 80px;
+    }
+
+    .panel h2 {
+      margin: 0 0 20px;
+      font-family: var(--title-font);
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: 0.16em;
+    }
+
+    .panel h3 {
+      margin: 32px 0 16px;
+      font-size: 17px;
+    }
+
+    .hint {
+      margin: -8px 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* 입력 칸 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.wide {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 16px;
+    }
+
+    .field textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--text);
+    }
+
+    .field input[type="file"] {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    /* 버튼 */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: 1px solid var(--text);
+      background: none;
+      font-size: 15px;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .btn.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .btn.primary:hover,
+    .btn.primary:focus-visible {
+      filter: brightness(1.15);
+    }
+
+    .btn.small {
+      padding: 6px 12px;
+      font-size: 14px;
+      border-color: var(--line);
+    }
+
+    .btn.danger:hover,
+    .btn.danger:focus-visible {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .status {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ok);
+    }
+
+    .status.error {
+      color: #ff9aa8;
+    }
+
+    /* 사진 미리보기 */
+    .preview-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .preview {
+      flex-shrink: 0;
+      width: 96px;
+      height: 96px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      object-fit: cover;
+    }
+
+    .preview.round {
+      border-radius: 50%;
+    }
+
+    .preview.wide {
+      width: 144px;
+      height: 90px;
+    }
+
+    .preview-tools {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    /* 목록 */
+    .list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .list-thumb {
+      flex-shrink: 0;
+      width: 72px;
+      height: 45px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      object-fit: cover;
+    }
+
+    .list-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .list-title {
+      margin: 0;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    .list-sub {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+      white-space: pre-line;
+    }
+
+    .list-tools {
+      display: flex;
+      flex-shrink: 0;
+      gap: 8px;
+    }
+
+    .likes {
+      flex-shrink: 0;
+      color: #ffb3bd;
+      font-size: 14px;
+    }
+
+    .empty {
+      color: var(--muted);
+    }
+
+    /* 로그인 */
+    .login {
+      max-width: 420px;
+      margin: 80px auto 0;
+    }
+
+    .login .field {
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .admin-top {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+      }
+
+      .admin-nav {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .wrap {
+        padding: 20px 16px 60px;
+      }
+
+      .panel {
+        padding: 20px 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .list-item {
+        flex-wrap: wrap;
+      }
+
+      .list-tools {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="admin-top">
+    <h1 class="admin-title">ADMIN</h1>
+    <nav class="admin-nav" aria-label="관리자 메뉴">
+      <a href="index.html" target="_blank" rel="noopener">사이트 보기</a>
+      <a href="#profile-panel" class="signed-in" hidden>프로필</a>
+      <a href="#projects-panel" class="signed-in" hidden>포트폴리오 카드</a>
+      <a href="#guestbook-panel" class="signed-in" hidden>방명록</a>
+    </nav>
+    <button type="button" class="btn small signed-in" id="logout-button" hidden>로그아웃</button>
+  </header>
+
+  <!-- 로그인 화면 -->
+  <main class="wrap" id="login-view" hidden>
+    <section class="panel login">
+      <h2>관리자 로그인</h2>
+      <div class="field">
+        <label for="login-email">이메일</label>
+        <input id="login-email" type="email" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="login-password">비밀번호</label>
+        <input id="login-password" type="password" autocomplete="current-password">
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="login-button">로그인</button>
+        <p class="status" id="login-status" role="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 로그인한 뒤 화면 -->
+  <main class="wrap" id="admin-view" hidden>
+
+    <!-- 프로필 -->
+    <section class="panel" id="profile-panel">
+      <h2>프로필</h2>
+      <p class="hint">ABOUT ME와 PORTFOLIO 위쪽 글이에요. 여러 줄 칸은 줄을 바꾸면 사이트에서도 줄이 바뀌어요.</p>
+
+      <div class="field wide">
+        <label for="profile-photo-file">프로필 사진</label>
+        <div class="preview-row">
+          <img class="preview round" id="profile-photo-preview" alt="" hidden>
+          <div class="preview-tools">
+            <input id="profile-photo-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+            <div>
+              <button type="button" class="btn small" id="profile-photo-remove">사진 지우기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 20px">
+        <div class="field"><label for="p-name">이름</label><input id="p-name" data-field="name"></div>
+        <div class="field"><label for="p-title">직함</label><input id="p-title" data-field="title"></div>
+        <div class="field"><label for="p-career_badge">경력 배지 (비우면 숨김)</label><input id="p-career_badge" data-field="career_badge"></div>
+        <div class="field"><label for="p-location">위치</label><input id="p-location" data-field="location"></div>
+        <div class="field"><label for="p-email">이메일</label><input id="p-email" type="email" data-field="email"></div>
+        <div class="field"><label for="p-phone">연락처</label><input id="p-phone" data-field="phone"></div>
+        <div class="field wide"><label for="p-headline">한 줄 소개 제목</label><input id="p-headline" data-field="headline"></div>
+        <div class="field wide"><label for="p-intro">소개 글</label><textarea id="p-intro" data-field="intro"></textarea></div>
+        <div class="field"><label for="p-education">EDUCATION</label><textarea id="p-education" data-field="education"></textarea></div>
+        <div class="field"><label for="p-skills">SKILLS &amp; TOOLS</label><textarea id="p-skills" data-field="skills"></textarea></div>
+        <div class="field"><label for="p-experience">EXPERIENCE</label><textarea id="p-experience" data-field="experience"></textarea></div>
+        <div class="field"><label for="p-quote">한 줄 인용 (비우면 숨김)</label><textarea id="p-quote" data-field="quote"></textarea></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="profile-save">프로필 저장</button>
+        <p class="status" id="profile-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- 포트폴리오 카드 -->
+    <section class="panel" id="projects-panel">
+      <h2>포트폴리오 카드</h2>
+      <p class="hint">♥ 숫자는 카드별 좋아요 수예요. 순서 숫자가 작을수록 앞에 보여요.</p>
+
+      <p class="empty" id="projects-empty" hidden>아직 카드가 없어요.</p>
+      <ul class="list" id="projects-list"></ul>
+
+      <h3 id="project-form-title">새 카드 추가</h3>
+      <div class="grid">
+        <div class="field"><label for="c-number">번호 (예: 01)</label><input id="c-number"></div>
+        <div class="field">
+          <label for="c-category">분류</label>
+          <select id="c-category">
+            <option value="영상">영상 (MOTION)</option>
+            <option value="사진">사진 (STILLS)</option>
+          </select>
+        </div>
+        <div class="field wide"><label for="c-title">제목 (꼭 적기)</label><input id="c-title"></div>
+        <div class="field wide"><label for="c-description">설명</label><textarea id="c-description"></textarea></div>
+        <div class="field"><label for="c-tags">태그 (쉼표로 나누기: 촬영, 편집)</label><input id="c-tags"></div>
+        <div class="field"><label for="c-sort">순서</label><input id="c-sort" type="number" step="1" value="0"></div>
+
+        <div class="field wide">
+          <label for="c-thumb-file">썸네일 이미지</label>
+          <div class="preview-row">
+            <img class="preview wide" id="c-thumb-preview" alt="" hidden>
+            <div class="preview-tools">
+              <input id="c-thumb-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+              <div>
+                <button type="button" class="btn small" id="c-thumb-remove">썸네일 지우기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field wide">
+          <label for="c-file-url" id="c-file-label">누르면 열 주소</label>
+          <input id="c-file-url" type="url" placeholder="https://">
+        </div>
+        <div class="field wide" id="c-upload-field">
+          <label for="c-file">또는 파일 올리기 (사진 · PDF, 10MB까지) — 저장할 때 위 주소가 이 파일로 바뀌어요</label>
+          <input id="c-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="project-save">카드 저장</button>
+        <button type="button" class="btn" id="project-cancel" hidden>수정 그만두기</button>
+        <p class="status" id="project-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- 방명록 -->
+    <section class="panel" id="guestbook-panel">
+      <h2>방명록</h2>
+      <p class="hint">최신 글이 위에 있어요. 지운 글은 되살릴 수 없어요.</p>
+      <p class="empty" id="guest-empty" hidden>남긴 글이 없어요.</p>
+      <ul class="list" id="guest-list"></ul>
+    </section>
+  </main>
+
+  <script src="admin.js?v=1"></script>
+</body>
+</html>
