@@ -129,6 +129,11 @@ function setText(id, text) {
 }
 
 function showProfile(profile) {
+  // 브라우저 탭 제목: "이름 포트폴리오"
+  if (profile.name) {
+    document.title = profile.name + " 포트폴리오";
+  }
+
   setText("profile-name", profile.name);
   setText("profile-title", profile.title);
   setText("info-name", profile.name);
