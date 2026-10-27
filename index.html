@@ -22,13 +22,13 @@
   <!-- 첫 화면: MOTION · ABOUT · STILLS -->
   <section class="hero" id="top">
     <div class="hero-column">
-      <button type="button" class="hero-link" data-target="portfolio" data-filter="영상">MOTION</button>
+      <button type="button" class="hero-link" data-target="highlights" data-filter="영상">MOTION</button>
     </div>
     <div class="hero-column">
       <button type="button" class="hero-link" data-target="about">ABOUT</button>
     </div>
     <div class="hero-column">
-      <button type="button" class="hero-link" data-target="portfolio" data-filter="사진">STILLS</button>
+      <button type="button" class="hero-link" data-target="highlights" data-filter="사진">STILLS</button>
     </div>
     <span class="scroll-line" aria-hidden="true"></span>
   </section>
@@ -41,14 +41,14 @@
     <button type="button" class="menu-link" data-target="guestbook">GUESTBOOK</button>
   </nav>
 
-  <!-- 아래 칸들은 다음 단계에서 채운다 -->
+  <!-- 첫 화면 아래 칸들 -->
   <main>
     <div class="content">
-      <!-- 왼쪽: ABOUT ME -->
+      <!-- 왼쪽: ABOUT ME (내용은 Supabase profile 표에서 불러온다) -->
       <section class="section about" id="about">
         <h2 class="section-title">ABOUT ME</h2>
 
-        <div class="profile-photo">
+        <div class="profile-photo" id="profile-photo">
           <!-- 프로필 사진이 없을 때 보이는 기본 모양 -->
           <svg viewBox="0 0 120 120" aria-hidden="true">
             <circle cx="60" cy="46" r="22" />
@@ -56,34 +56,68 @@
           </svg>
         </div>
 
-        <p class="profile-name">김지영</p>
-        <p class="profile-role">영상 · 사진 작가</p>
-        <p class="profile-badge">경력 5년</p>
+        <p class="profile-name" id="profile-name"></p>
+        <p class="profile-role" id="profile-title"></p>
+        <p class="profile-badge" id="profile-badge" hidden></p>
 
         <dl class="profile-info" id="contact">
           <div class="profile-row">
             <dt>NAME</dt>
-            <dd>김지영</dd>
+            <dd id="info-name"></dd>
           </div>
           <div class="profile-row">
             <dt>EMAIL</dt>
-            <dd><a href="mailto:jiyoung@example.com">jiyoung@example.com</a></dd>
+            <dd><a id="info-email" href="#"></a></dd>
           </div>
           <div class="profile-row">
             <dt>PHONE</dt>
-            <dd><a href="tel:010-0000-0000">010-0000-0000</a></dd>
+            <dd><a id="info-phone" href="#"></a></dd>
           </div>
           <div class="profile-row">
             <dt>LOCATION</dt>
-            <dd>제주</dd>
+            <dd id="info-location"></dd>
           </div>
         </dl>
       </section>
 
       <!-- 오른쪽: PORTFOLIO -->
-      <section class="section" id="portfolio">
+      <section class="section portfolio" id="portfolio">
         <h2 class="section-title">PORTFOLIO</h2>
-        <p class="placeholder">지금 보는 분류: <strong id="current-filter">전체</strong></p>
+
+        <p class="load-error" id="load-error" hidden>내용을 불러오지 못했어요. 잠시 뒤 새로고침해 주세요.</p>
+
+        <h3 class="headline" id="headline"></h3>
+        <p class="intro" id="intro"></p>
+
+        <div class="facts">
+          <div class="fact">
+            <h4 class="fact-title">EDUCATION</h4>
+            <p class="fact-text" id="education"></p>
+          </div>
+          <div class="fact">
+            <h4 class="fact-title">SKILLS &amp; TOOLS</h4>
+            <p class="fact-text" id="skills"></p>
+          </div>
+          <div class="fact">
+            <h4 class="fact-title">EXPERIENCE</h4>
+            <p class="fact-text" id="experience"></p>
+          </div>
+        </div>
+
+        <div class="highlights" id="highlights">
+          <div class="highlights-head">
+            <h3 class="highlights-title">PORTFOLIO HIGHLIGHTS</h3>
+            <div class="filters" role="group" aria-label="분류 고르기">
+              <button type="button" class="filter-button" data-category="전체" aria-pressed="true">ALL</button>
+              <button type="button" class="filter-button" data-category="영상" aria-pressed="false">MOTION</button>
+              <button type="button" class="filter-button" data-category="사진" aria-pressed="false">STILLS</button>
+            </div>
+          </div>
+          <p class="empty" id="cards-empty" hidden>아직 카드가 없어요.</p>
+          <div class="cards" id="cards"></div>
+        </div>
+
+        <blockquote class="quote" id="quote" hidden></blockquote>
       </section>
     </div>
 

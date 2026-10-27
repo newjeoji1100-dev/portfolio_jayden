@@ -1,12 +1,65 @@
+// ===== Supabase 연결 정보 (공개 키만 넣는다) =====
+const SUPABASE_URL = "https://mleyapzurbkmgkoczdin.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ZqafFtsKN_65vi1st9fk4A_IYm5vcX8";
+
+// Supabase 표에 요청을 보낸다. 실패하면 오류를 던진다.
+async function api(path, options) {
+  const settings = options || {};
+  const response = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+    method: settings.method || "GET",
+    headers: Object.assign(
+      { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+      settings.headers || {}
+    ),
+    body: settings.body ? JSON.stringify(settings.body) : undefined,
+  });
+  if (!response.ok) {
+    const error = new Error("Supabase 요청 실패: " + response.status);
+    error.status = response.status;
+    throw error;
+  }
+  if (response.status === 204 || response.status === 201) {
+    return null;
+  }
+  return response.json();
+}
+
+// http(s) 주소만 쓴다 (이상한 주소가 들어와도 실행되지 않게)
+function safeUrl(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.href;
+    }
+  } catch (error) {
+    // 주소가 아니면 아래에서 빈 값
+  }
+  return "";
+}
+
+// 브라우저 저장소는 막혀 있을 수 있어서 항상 try로 감싼다
+function readStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    return null;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    // 저장이 안 되어도 화면은 그대로 동작한다
+  }
+}
+
+
 // ===== 첫 화면과 메뉴 =====
 
 const menu = document.getElementById("menu");
 const menuButton = document.querySelector(".menu-button");
 const menuClose = document.querySelector(".menu-close");
-const currentFilter = document.getElementById("current-filter");
-
-// 지금 고른 분류 ("전체", "영상", "사진"). 카드를 만들 때 이 값으로 골라 보여 준다.
-let selectedCategory = "전체";
 
 // 원하는 칸으로 내려간다
 function goTo(targetId) {
@@ -14,12 +67,6 @@ function goTo(targetId) {
   if (target) {
     target.scrollIntoView();
   }
-}
-
-// 분류를 바꾼다
-function setCategory(category) {
-  selectedCategory = category;
-  currentFilter.textContent = category;
 }
 
 function openMenu() {
@@ -54,9 +101,6 @@ menuClose.addEventListener("click", closeMenu);
 document.querySelectorAll(".menu-link").forEach(function (button) {
   button.addEventListener("click", function () {
     closeMenu();
-    if (button.dataset.target === "portfolio") {
-      setCategory("전체");
-    }
     goTo(button.dataset.target);
   });
 });
@@ -77,3 +121,255 @@ function updateTopbar() {
 
 window.addEventListener("scroll", updateTopbar);
 updateTopbar();
+
+
+// ===== ABOUT ME + PORTFOLIO 글 (profile 표) =====
+
+function setText(id, text) {
+  document.getElementById(id).textContent = text || "";
+}
+
+function showProfile(profile) {
+  setText("profile-name", profile.name);
+  setText("profile-title", profile.title);
+  setText("info-name", profile.name);
+  setText("info-location", profile.location);
+
+  const badge = document.getElementById("profile-badge");
+  badge.textContent = profile.career_badge || "";
+  badge.hidden = !profile.career_badge;
+
+  const email = document.getElementById("info-email");
+  email.textContent = profile.email || "";
+  email.href = "mailto:" + (profile.email || "");
+
+  const phone = document.getElementById("info-phone");
+  phone.textContent = profile.phone || "";
+  phone.href = "tel:" + (profile.phone || "").replace(/[^0-9+]/g, "");
+
+  const photoUrl = safeUrl(profile.photo_url);
+  if (photoUrl) {
+    const photo = document.getElementById("profile-photo");
+    const image = document.createElement("img");
+    image.src = photoUrl;
+    image.alt = (profile.name || "") + " 프로필 사진";
+    photo.replaceChildren(image);
+  }
+
+  setText("headline", profile.headline);
+  setText("intro", profile.intro);
+  setText("education", profile.education);
+  setText("skills", profile.skills);
+  setText("experience", profile.experience);
+
+  const quote = document.getElementById("quote");
+  quote.textContent = profile.quote || "";
+  quote.hidden = !profile.quote;
+}
+
+async function loadProfile() {
+  const rows = await api("profile?id=eq.1&select=*");
+  if (rows.length > 0) {
+    showProfile(rows[0]);
+  }
+}
+
+
+// ===== PORTFOLIO HIGHLIGHTS 카드 (projects · likes 표) =====
+
+const cardList = document.getElementById("cards");
+const cardsEmpty = document.getElementById("cards-empty");
+
+let projects = [];
+let likeCounts = {};
+// 지금 고른 분류 ("전체", "영상", "사진")
+let selectedCategory = "전체";
+
+// 이 브라우저의 번호 (좋아요를 카드마다 한 번만 누르게 할 때 쓴다)
+function getClientId() {
+  let id = readStorage("resume_client_id");
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+    writeStorage("resume_client_id", id);
+  }
+  return id;
+}
+
+// 이 브라우저에서 좋아요를 누른 카드 번호 목록
+function getLikedIds() {
+  try {
+    return JSON.parse(readStorage("resume_liked") || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+function rememberLiked(projectId) {
+  const liked = getLikedIds();
+  if (!liked.includes(projectId)) {
+    liked.push(projectId);
+    writeStorage("resume_liked", JSON.stringify(liked));
+  }
+}
+
+// 분류를 바꾼다
+function setCategory(category) {
+  selectedCategory = category;
+  document.querySelectorAll(".filter-button").forEach(function (button) {
+    button.setAttribute("aria-pressed", String(button.dataset.category === category));
+  });
+  renderCards();
+}
+
+document.querySelectorAll(".filter-button").forEach(function (button) {
+  button.addEventListener("click", function () {
+    setCategory(button.dataset.category);
+  });
+});
+
+// 카드 하나를 만든다
+function makeCard(project) {
+  const card = document.createElement("article");
+  card.className = "card";
+
+  // 카드를 누르면 열 주소 (영상: 유튜브·비메오, 사진: 이미지·PDF)
+  const fileUrl = safeUrl(project.file_url);
+  const main = document.createElement(fileUrl ? "a" : "div");
+  main.className = "card-main";
+  if (fileUrl) {
+    main.href = fileUrl;
+    main.target = "_blank";
+    main.rel = "noopener";
+  }
+
+  // 브라우저 창 모양 썸네일
+  const thumb = document.createElement("div");
+  thumb.className = "card-thumb";
+  const bar = document.createElement("div");
+  bar.className = "card-thumb-bar";
+  bar.innerHTML = "<span></span><span></span><span></span>";
+  thumb.appendChild(bar);
+
+  const thumbUrl = safeUrl(project.thumbnail_url);
+  if (thumbUrl) {
+    const image = document.createElement("img");
+    image.src = thumbUrl;
+    image.alt = "";
+    image.loading = "lazy";
+    thumb.appendChild(image);
+  } else {
+    const blank = document.createElement("div");
+    blank.className = "card-thumb-blank";
+    blank.textContent = project.category === "영상" ? "MOTION" : "STILLS";
+    thumb.appendChild(blank);
+  }
+  main.appendChild(thumb);
+
+  const body = document.createElement("div");
+  body.className = "card-body";
+
+  const meta = document.createElement("p");
+  meta.className = "card-meta";
+  meta.textContent = (project.number ? project.number + " · " : "") +
+    (project.category === "영상" ? "MOTION" : "STILLS");
+  body.appendChild(meta);
+
+  const title = document.createElement("h4");
+  title.className = "card-title";
+  title.textContent = project.title;
+  body.appendChild(title);
+
+  if (project.description) {
+    const description = document.createElement("p");
+    description.className = "card-description";
+    description.textContent = project.description;
+    body.appendChild(description);
+  }
+
+  if (project.tags && project.tags.length > 0) {
+    const tags = document.createElement("ul");
+    tags.className = "card-tags";
+    project.tags.forEach(function (tag) {
+      const item = document.createElement("li");
+      item.textContent = tag;
+      tags.appendChild(item);
+    });
+    body.appendChild(tags);
+  }
+
+  main.appendChild(body);
+  card.appendChild(main);
+
+  // 좋아요 버튼
+  const liked = getLikedIds().includes(project.id);
+  const likeButton = document.createElement("button");
+  likeButton.type = "button";
+  likeButton.className = "like-button";
+  likeButton.setAttribute("aria-pressed", String(liked));
+  likeButton.setAttribute("aria-label", "좋아요");
+  likeButton.innerHTML =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
+  const count = document.createElement("span");
+  count.className = "like-count";
+  count.textContent = likeCounts[project.id] || 0;
+  likeButton.appendChild(count);
+  likeButton.addEventListener("click", function () {
+    likeProject(project.id, likeButton);
+  });
+  card.appendChild(likeButton);
+
+  return card;
+}
+
+function renderCards() {
+  const visible = projects.filter(function (project) {
+    return selectedCategory === "전체" || project.category === selectedCategory;
+  });
+  cardList.replaceChildren.apply(cardList, visible.map(makeCard));
+  cardsEmpty.hidden = visible.length > 0;
+}
+
+async function likeProject(projectId, button) {
+  if (button.getAttribute("aria-pressed") === "true" || button.disabled) {
+    return;
+  }
+  button.disabled = true;
+  try {
+    await api("likes", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: { project_id: projectId, client_id: getClientId() },
+    });
+    likeCounts[projectId] = (likeCounts[projectId] || 0) + 1;
+    rememberLiked(projectId);
+  } catch (error) {
+    if (error.status === 409) {
+      // 이 브라우저는 이미 눌렀다
+      rememberLiked(projectId);
+    } else {
+      alert("좋아요를 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.");
+    }
+  }
+  button.disabled = false;
+  renderCards();
+}
+
+async function loadProjects() {
+  const results = await Promise.all([
+    api("projects?select=*&order=sort_order.asc,id.asc"),
+    api("likes?select=project_id"),
+  ]);
+  projects = results[0];
+  likeCounts = {};
+  results[1].forEach(function (like) {
+    likeCounts[like.project_id] = (likeCounts[like.project_id] || 0) + 1;
+  });
+  renderCards();
+}
+
+
+// ===== 처음 열 때 불러오기 =====
+Promise.all([loadProfile(), loadProjects()]).catch(function (error) {
+  console.error(error);
+  document.getElementById("load-error").hidden = false;
+});
