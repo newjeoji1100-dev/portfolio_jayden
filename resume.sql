@@ -283,5 +283,5 @@ where not exists (select 1 from public.projects);
 --    (1번 단계에서 Authentication > Users 에 만든 이메일)
 -- ---------------------------------------------------------------------
 insert into public.admins (user_id)
-select id from auth.users where email = 'admin@example.com'
+select id from auth.users where email = 'jeju.jayden@gmail.com'
 on conflict (user_id) do nothing;
