@@ -459,6 +459,10 @@ async function submitGuestbook() {
 guestSubmit.addEventListener("click", submitGuestbook);
 
 
+// ===== 맨 아래 안내 줄의 연도: 올해로 자동으로 바꾼다 =====
+document.getElementById("footer-year").textContent = new Date().getFullYear();
+
+
 // ===== 처음 열 때 불러오기 =====
 Promise.all([loadProfile(), loadProjects(), loadGuestbook()]).catch(function (error) {
   console.error(error);
