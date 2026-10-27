@@ -172,7 +172,7 @@ function showProfile(profile) {
 }
 
 async function loadProfile() {
-  const rows = await api("profile?id=eq.1&select=*");
+  const rows = await api("resume_profile?id=eq.1&select=*");
   if (rows.length > 0) {
     showProfile(rows[0]);
   }
@@ -339,7 +339,7 @@ async function likeProject(projectId, button) {
   }
   button.disabled = true;
   try {
-    await api("likes", {
+    await api("resume_likes", {
       method: "POST",
       headers: { Prefer: "return=minimal" },
       body: { project_id: projectId, client_id: getClientId() },
@@ -360,8 +360,8 @@ async function likeProject(projectId, button) {
 
 async function loadProjects() {
   const results = await Promise.all([
-    api("projects?select=*&order=sort_order.asc,id.asc"),
-    api("likes?select=project_id"),
+    api("resume_projects?select=*&order=sort_order.asc,id.asc"),
+    api("resume_likes?select=project_id"),
   ]);
   projects = results[0];
   likeCounts = {};

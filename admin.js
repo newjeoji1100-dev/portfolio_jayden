@@ -208,7 +208,7 @@ function showLogin(message) {
 
 async function showAdmin() {
   // 관리자 명단에 있는지 확인한다 (규칙상 자기 줄만 보인다)
-  const rows = await api("admins?select=user_id");
+  const rows = await api("resume_admins?select=user_id");
   if (rows.length === 0) {
     await logout();
     showLogin("관리자로 등록된 계정이 아니에요.");
@@ -277,7 +277,7 @@ $("logout-button").addEventListener("click", async function () {
 let profilePhotoUrl = null;
 
 async function loadProfile() {
-  const rows = await api("profile?id=eq.1&select=*");
+  const rows = await api("resume_profile?id=eq.1&select=*");
   const profile = rows[0] || {};
   document.querySelectorAll("[data-field]").forEach(function (input) {
     input.value = profile[input.dataset.field] || "";
@@ -319,7 +319,7 @@ async function saveProfile() {
     body.photo_url = profilePhotoUrl;
 
     // 줄이 있으면 고치고, 없으면 새로 만든다
-    await change("profile?on_conflict=id", "POST", body, "resolution=merge-duplicates");
+    await change("resume_profile?on_conflict=id", "POST", body, "resolution=merge-duplicates");
     await loadProfile();
     setStatus(status, "저장했어요. 사이트를 새로고침하면 보여요.");
   } catch (error) {
@@ -340,8 +340,8 @@ let thumbnailUrl = null;
 
 async function loadProjects() {
   const results = await Promise.all([
-    api("projects?select=*&order=sort_order.asc,id.asc"),
-    api("likes?select=project_id"),
+    api("resume_projects?select=*&order=sort_order.asc,id.asc"),
+    api("resume_likes?select=project_id"),
   ]);
   projects = results[0];
   const likeCounts = {};
@@ -504,9 +504,9 @@ async function saveProject() {
     };
 
     if (editingId) {
-      await change("projects?id=eq." + editingId, "PATCH", body);
+      await change("resume_projects?id=eq." + editingId, "PATCH", body);
     } else {
-      await change("projects", "POST", body);
+      await change("resume_projects", "POST", body);
     }
     await loadProjects();
     resetProjectForm();
@@ -525,7 +525,7 @@ async function deleteProject(project) {
     return;
   }
   try {
-    await change("projects?id=eq." + project.id, "DELETE");
+    await change("resume_projects?id=eq." + project.id, "DELETE");
     if (editingId === project.id) {
       resetProjectForm();
     }

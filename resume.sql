@@ -9,14 +9,20 @@
 --      켜 두어도 관리자 목록에 없는 사람은 아무것도 못 고치지만, 모르는 계정이 생기지 않게 한다.
 --
 -- 주의: 이미 있는 guestbook 표와 photos 보관함은 절대 건드리지 않는다.
---       여기서 만드는 것은 admins, profile, projects, likes, resume_guestbook 표와
+--       여기서 만드는 것은 resume_admins, resume_profile, resume_projects, resume_likes,
+--       resume_guestbook 표와
 --       resume 보관함, 그리고 그 이름들에 붙는 규칙뿐이다.
 --
 -- 이 사이트(명세.md)에 맞춰 원본에서 조정한 점
---   - projects.category 는 '영상'(MOTION) 또는 '사진'(STILLS)만 넣을 수 있다.
+--   - resume_projects.category 는 '영상'(MOTION) 또는 '사진'(STILLS)만 넣을 수 있다.
 --   - 방문자는 방명록에 별명·한마디만, 좋아요에 카드 번호·브라우저 번호만 넣을 수 있다.
 --     (작성 시각을 미래로 꾸며 목록 맨 위에 계속 고정하는 일을 막는다)
 --   - 예시 데이터를 지금 화면(영상·사진 작가 김지영)에 맞췄다. 전부 가짜다.
+--
+-- 이름 규칙: 이 사이트의 표·보관함·함수·규칙 이름은 모두 resume_ 로 시작한다.
+--           (같은 Supabase를 쓰는 다른 사이트와 섞이지 않게)
+--           예전 이름(admins, profile, projects, likes)으로 이미 만들었다면
+--           resume_rename.sql 을 한 번 실행한다.
 -- =====================================================================
 
 
@@ -25,12 +31,12 @@
 -- ---------------------------------------------------------------------
 
 -- 관리자 목록 (여기에 id가 있는 사람만 관리자)
-create table if not exists public.admins (
+create table if not exists public.resume_admins (
   user_id uuid primary key references auth.users (id) on delete cascade
 );
 
 -- 프로필 (딱 한 줄만 있다: id는 항상 1)
-create table if not exists public.profile (
+create table if not exists public.resume_profile (
   id           int primary key check (id = 1),
   name         text not null default '',
   title        text not null default '',
@@ -49,7 +55,7 @@ create table if not exists public.profile (
 );
 
 -- 포트폴리오 카드 (분류는 '영상' = MOTION, '사진' = STILLS)
-create table if not exists public.projects (
+create table if not exists public.resume_projects (
   id            bigint generated always as identity primary key,
   number        text not null default '',
   category      text not null default '사진' check (category in ('영상', '사진')),
@@ -63,9 +69,9 @@ create table if not exists public.projects (
 );
 
 -- 좋아요 (누를 때마다 한 줄. 같은 브라우저(client_id)는 카드마다 한 번만)
-create table if not exists public.likes (
+create table if not exists public.resume_likes (
   id         bigint generated always as identity primary key,
-  project_id bigint not null references public.projects (id) on delete cascade,
+  project_id bigint not null references public.resume_projects (id) on delete cascade,
   client_id  text not null check (char_length(client_id) between 8 and 64),
   created_at timestamptz not null default now(),
   unique (project_id, client_id)
@@ -90,7 +96,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select exists (select 1 from public.admins where user_id = auth.uid());
+  select exists (select 1 from public.resume_admins where user_id = auth.uid());
 $$;
 
 grant execute on function public.resume_is_admin() to anon, authenticated;
@@ -99,35 +105,35 @@ grant execute on function public.resume_is_admin() to anon, authenticated;
 -- ---------------------------------------------------------------------
 -- 3. 규칙 켜기 (RLS) : 규칙이 없으면 아무도 못 쓴다
 -- ---------------------------------------------------------------------
-alter table public.admins           enable row level security;
-alter table public.profile          enable row level security;
-alter table public.projects         enable row level security;
-alter table public.likes            enable row level security;
+alter table public.resume_admins           enable row level security;
+alter table public.resume_profile          enable row level security;
+alter table public.resume_projects         enable row level security;
+alter table public.resume_likes            enable row level security;
 alter table public.resume_guestbook enable row level security;
 
 
 -- ---------------------------------------------------------------------
 -- 4. 표 사용 권한 (큰 문). 세부 규칙(작은 문)은 아래 policy 가 정한다.
 -- ---------------------------------------------------------------------
-revoke all on public.admins           from anon, authenticated;
-revoke all on public.profile          from anon, authenticated;
-revoke all on public.projects         from anon, authenticated;
-revoke all on public.likes            from anon, authenticated;
+revoke all on public.resume_admins           from anon, authenticated;
+revoke all on public.resume_profile          from anon, authenticated;
+revoke all on public.resume_projects         from anon, authenticated;
+revoke all on public.resume_likes            from anon, authenticated;
 revoke all on public.resume_guestbook from anon, authenticated;
 
-grant select                          on public.admins           to authenticated;
-grant select                          on public.profile          to anon, authenticated;
-grant select                          on public.projects         to anon, authenticated;
-grant select                          on public.likes            to anon, authenticated;
+grant select                          on public.resume_admins           to authenticated;
+grant select                          on public.resume_profile          to anon, authenticated;
+grant select                          on public.resume_projects         to anon, authenticated;
+grant select                          on public.resume_likes            to anon, authenticated;
 grant select                          on public.resume_guestbook to anon, authenticated;
 
 -- 방문자가 넣을 수 있는 칸은 이것뿐 (번호·작성 시각은 데이터베이스가 정한다)
-grant insert (project_id, client_id)  on public.likes            to anon, authenticated;
+grant insert (project_id, client_id)  on public.resume_likes            to anon, authenticated;
 grant insert (nickname, message)      on public.resume_guestbook to anon, authenticated;
 
-grant insert, update, delete          on public.profile          to authenticated;
-grant insert, update, delete          on public.projects         to authenticated;
-grant delete                          on public.likes            to authenticated;
+grant insert, update, delete          on public.resume_profile          to authenticated;
+grant insert, update, delete          on public.resume_projects         to authenticated;
+grant delete                          on public.resume_likes            to authenticated;
 grant delete                          on public.resume_guestbook to authenticated;
 
 
@@ -135,60 +141,60 @@ grant delete                          on public.resume_guestbook to authenticate
 -- 5. 표별 규칙
 -- ---------------------------------------------------------------------
 
--- admins : 로그인한 사람은 "자기 줄"만 볼 수 있다. 추가·수정·삭제 규칙은 없다
+-- resume_admins : 로그인한 사람은 "자기 줄"만 볼 수 있다. 추가·수정·삭제 규칙은 없다
 --          (관리자 등록은 SQL 편집기에서만 가능).
-drop policy if exists "resume_admins_read_self" on public.admins;
-create policy "resume_admins_read_self" on public.admins
+drop policy if exists "resume_admins_read_self" on public.resume_admins;
+create policy "resume_admins_read_self" on public.resume_admins
   for select to authenticated
   using (user_id = auth.uid());
 
--- profile : 누구나 읽기, 관리자만 쓰기·고치기·지우기
-drop policy if exists "resume_profile_read" on public.profile;
-create policy "resume_profile_read" on public.profile
+-- resume_profile : 누구나 읽기, 관리자만 쓰기·고치기·지우기
+drop policy if exists "resume_profile_read" on public.resume_profile;
+create policy "resume_profile_read" on public.resume_profile
   for select to anon, authenticated using (true);
 
-drop policy if exists "resume_profile_admin_insert" on public.profile;
-create policy "resume_profile_admin_insert" on public.profile
+drop policy if exists "resume_profile_admin_insert" on public.resume_profile;
+create policy "resume_profile_admin_insert" on public.resume_profile
   for insert to authenticated with check (public.resume_is_admin());
 
-drop policy if exists "resume_profile_admin_update" on public.profile;
-create policy "resume_profile_admin_update" on public.profile
+drop policy if exists "resume_profile_admin_update" on public.resume_profile;
+create policy "resume_profile_admin_update" on public.resume_profile
   for update to authenticated
   using (public.resume_is_admin()) with check (public.resume_is_admin());
 
-drop policy if exists "resume_profile_admin_delete" on public.profile;
-create policy "resume_profile_admin_delete" on public.profile
+drop policy if exists "resume_profile_admin_delete" on public.resume_profile;
+create policy "resume_profile_admin_delete" on public.resume_profile
   for delete to authenticated using (public.resume_is_admin());
 
--- projects : 누구나 읽기, 관리자만 쓰기·고치기·지우기
-drop policy if exists "resume_projects_read" on public.projects;
-create policy "resume_projects_read" on public.projects
+-- resume_projects : 누구나 읽기, 관리자만 쓰기·고치기·지우기
+drop policy if exists "resume_projects_read" on public.resume_projects;
+create policy "resume_projects_read" on public.resume_projects
   for select to anon, authenticated using (true);
 
-drop policy if exists "resume_projects_admin_insert" on public.projects;
-create policy "resume_projects_admin_insert" on public.projects
+drop policy if exists "resume_projects_admin_insert" on public.resume_projects;
+create policy "resume_projects_admin_insert" on public.resume_projects
   for insert to authenticated with check (public.resume_is_admin());
 
-drop policy if exists "resume_projects_admin_update" on public.projects;
-create policy "resume_projects_admin_update" on public.projects
+drop policy if exists "resume_projects_admin_update" on public.resume_projects;
+create policy "resume_projects_admin_update" on public.resume_projects
   for update to authenticated
   using (public.resume_is_admin()) with check (public.resume_is_admin());
 
-drop policy if exists "resume_projects_admin_delete" on public.projects;
-create policy "resume_projects_admin_delete" on public.projects
+drop policy if exists "resume_projects_admin_delete" on public.resume_projects;
+create policy "resume_projects_admin_delete" on public.resume_projects
   for delete to authenticated using (public.resume_is_admin());
 
--- likes : 누구나 읽기·남기기, 지우기는 관리자만 (고치기는 아무도 못 함)
-drop policy if exists "resume_likes_read" on public.likes;
-create policy "resume_likes_read" on public.likes
+-- resume_likes : 누구나 읽기·남기기, 지우기는 관리자만 (고치기는 아무도 못 함)
+drop policy if exists "resume_likes_read" on public.resume_likes;
+create policy "resume_likes_read" on public.resume_likes
   for select to anon, authenticated using (true);
 
-drop policy if exists "resume_likes_insert" on public.likes;
-create policy "resume_likes_insert" on public.likes
+drop policy if exists "resume_likes_insert" on public.resume_likes;
+create policy "resume_likes_insert" on public.resume_likes
   for insert to anon, authenticated with check (true);
 
-drop policy if exists "resume_likes_admin_delete" on public.likes;
-create policy "resume_likes_admin_delete" on public.likes
+drop policy if exists "resume_likes_admin_delete" on public.resume_likes;
+create policy "resume_likes_admin_delete" on public.resume_likes
   for delete to authenticated using (public.resume_is_admin());
 
 -- resume_guestbook : 누구나 읽기·남기기, 지우기는 관리자만
@@ -245,7 +251,7 @@ create policy "resume_files_admin_delete" on storage.objects
 -- ---------------------------------------------------------------------
 -- 7. 예시 데이터 (전부 가짜). 이미 있으면 다시 넣지 않는다.
 -- ---------------------------------------------------------------------
-insert into public.profile
+insert into public.resume_profile
   (id, name, title, career_badge, email, phone, location,
    headline, intro, education, skills, experience, quote)
 values
@@ -259,7 +265,7 @@ values
    '가장 좋은 장면은 기다린 만큼 온다. (예시)')
 on conflict (id) do nothing;
 
-insert into public.projects (number, category, title, description, tags, sort_order)
+insert into public.resume_projects (number, category, title, description, tags, sort_order)
 select v.number, v.category, v.title, v.description, v.tags, v.sort_order
 from (values
   ('01', '영상', '예시 오름 다큐멘터리',
@@ -275,13 +281,13 @@ from (values
    '예시 설명입니다. 마을 사람들의 일상을 담은 인물 사진.',
    array['인물', '보정'], 4)
 ) as v(number, category, title, description, tags, sort_order)
-where not exists (select 1 from public.projects);
+where not exists (select 1 from public.resume_projects);
 
 
 -- ---------------------------------------------------------------------
 -- 8. 관리자 등록  ← 여기 이메일만 내 관리자 이메일로 바꾸세요
 --    (1번 단계에서 Authentication > Users 에 만든 이메일)
 -- ---------------------------------------------------------------------
-insert into public.admins (user_id)
+insert into public.resume_admins (user_id)
 select id from auth.users where email = 'jeju.jayden@gmail.com'
 on conflict (user_id) do nothing;

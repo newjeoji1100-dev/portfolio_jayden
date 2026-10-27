@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>관리자 · 포트폴리오</title>
+  <title>[관리자] 김민재 포트폴리오</title>
+  <!-- 탭 아이콘: 붉은 네모에 R (다른 사이트 관리자와 탭에서 구분) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23c8102e'/%3E%3Ctext x='16' y='23' font-family='Arial' font-size='20' font-weight='700' fill='white' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
   <style>
     :root {
       --bg: #12171d;
@@ -42,6 +44,25 @@
 
     a {
       color: inherit;
+    }
+
+    /* 어느 사이트의 관리자인지 알려 주는 띠 (사이트마다 색을 다르게) */
+    .site-band {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 4px 16px;
+      padding: 10px 24px;
+      background: var(--accent);
+      font-size: 14px;
+    }
+
+    .site-band strong {
+      font-size: 16px;
+    }
+
+    .site-band span {
+      opacity: 0.9;
     }
 
     /* 맨 위 줄 */
@@ -365,6 +386,12 @@
   </style>
 </head>
 <body>
+  <div class="site-band" role="note">
+    <strong>김민재 포트폴리오 관리자</strong>
+    <span>사이트: newjeoji1100-dev.github.io/portfolio_jayden</span>
+    <span>Supabase 이름: resume_로 시작하는 표 · resume 보관함</span>
+  </div>
+
   <header class="admin-top">
     <h1 class="admin-title">ADMIN</h1>
     <nav class="admin-nav" aria-label="관리자 메뉴">
@@ -499,6 +526,6 @@
     </section>
   </main>
 
-  <script src="admin.js?v=1"></script>
+  <script src="admin.js?v=2"></script>
 </body>
 </html>
